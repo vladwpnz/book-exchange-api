@@ -537,6 +537,23 @@ public class FriendsSharingControllerTest {
 
     @Test
     @WithMockUser(username = "ignat@gmail.com", password = "center", authorities = "USER")
+    @DisplayName("Test for POST /book/return/force endpoint(forbidden)")
+    void testForceReturnBook_Forbidden() throws Exception {
+        var requestBuilder = post("/book/return/force?id=1");
+        mockMvc.perform(requestBuilder)
+                .andExpect(status().isForbidden());
+    }
+
+    @Test
+    @DisplayName("Test for POST /book/return/force endpoint(unauthorized)")
+    void testForceReturnBook_Unauthorized() throws Exception {
+        var requestBuilder = post("/book/return/force?id=1");
+        mockMvc.perform(requestBuilder)
+                .andExpect(status().isUnauthorized());
+    }
+
+    @Test
+    @WithMockUser(username = "ignat@gmail.com", password = "center", authorities = "USER")
     @DisplayName("Validation test")
     void testValidation() throws Exception {
         var requestNoAuthor = post("/book/add")

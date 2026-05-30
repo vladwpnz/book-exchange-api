@@ -29,7 +29,7 @@ public class SecurityConfig {
                                 .hasAuthority(Authorities.ADMIN.toString())
                         .requestMatchers(HttpMethod.DELETE, "/book/delete")
                                 .hasAuthority(Authorities.ADMIN.toString())
-                        .requestMatchers(HttpMethod.DELETE, "/book/return/force")
+                        .requestMatchers(HttpMethod.POST, "/book/return/force")
                         .hasAuthority(Authorities.ADMIN.toString())
                         /*.requestMatchers(HttpMethod.DELETE, "/present/delete")
                                 .hasAuthority(Authorities.ADMIN.toString())*/
