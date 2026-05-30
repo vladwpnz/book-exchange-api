@@ -1,5 +1,7 @@
 # Book Exchange API
 
+[![API Tests](https://github.com/vladwpnz/book-exchange-api-tests/actions/workflows/api-tests.yml/badge.svg)](https://github.com/vladwpnz/book-exchange-api-tests/actions/workflows/api-tests.yml)
+
 A backend REST API for a book exchange and gifting platform.
 
 The application allows users to register, add books, share books with other users, give books permanently, return borrowed books, and manage books through admin endpoints.
