@@ -4,7 +4,7 @@ A backend REST API for a book exchange and gifting platform.
 
 The application allows users to register, add books, share books with other users, give books permanently, return borrowed books, and manage books through admin endpoints.
 
-This project was originally created as a university course project and is being improved as a portfolio project for Java backend development.
+This project was originally created as a university course project and is being improved as a portfolio project for Java backend development and API testing.
 
 ---
 
@@ -45,6 +45,7 @@ This project was originally created as a university course project and is being 
 - API documentation with Swagger/OpenAPI
 - MySQL database integration
 - Docker Compose setup for MySQL and phpMyAdmin
+- External automated API test suite in a separate repository
 
 ---
 
@@ -83,9 +84,31 @@ src
 Before running the project, make sure you have installed:
 
 - Java 17+
-- Maven or Maven Wrapper
+- Maven
 - Docker
 - Docker Compose
+
+---
+
+## Database Configuration
+
+The application uses MySQL.
+
+Default local configuration:
+
+```text
+Database: friendssharing
+Host: localhost
+Port: 3306
+Username: root
+Password: empty
+```
+
+The database connection is configured in:
+
+```text
+src/main/resources/application.properties
+```
 
 ---
 
@@ -107,20 +130,33 @@ Services:
 
 ---
 
+## Alternative: Run MySQL with XAMPP on Windows
+
+If you use XAMPP instead of Docker:
+
+1. Open XAMPP Control Panel.
+2. Start MySQL.
+3. Make sure MySQL is running on port `3306`.
+4. Create the required database if it does not exist:
+
+```powershell
+& "C:\xampp\mysql\bin\mysql.exe" -h 127.0.0.1 -P 3306 -u root -e "CREATE DATABASE IF NOT EXISTS friendssharing;"
+```
+
+Check databases:
+
+```powershell
+& "C:\xampp\mysql\bin\mysql.exe" -h 127.0.0.1 -P 3306 -u root -e "SHOW DATABASES;"
+```
+
+---
+
 ## Run the Application Locally
 
 After the database is running, start the Spring Boot application.
 
-For Linux/macOS:
-
 ```bash
-./mvnw clean spring-boot:run
-```
-
-For Windows:
-
-```bash
-mvnw.cmd clean spring-boot:run
+mvn clean spring-boot:run
 ```
 
 The application should be available at:
@@ -149,19 +185,53 @@ http://localhost:8080/v3/api-docs
 
 ## Testing
 
-Run tests with:
-
-For Linux/macOS:
+Run backend tests with:
 
 ```bash
-./mvnw test
+mvn test
 ```
 
-For Windows:
+---
+
+## Automated API Tests
+
+A separate black-box API testing project is available here:
+
+```text
+https://github.com/vladwpnz/book-exchange-api-tests
+```
+
+The API test project covers the main API flows using:
+
+- Java 17
+- Maven
+- JUnit 5
+- RestAssured
+- AssertJ
+- Jackson
+- Postman
+- GitHub Actions
+
+Current API test coverage includes:
+
+- User registration
+- Basic authentication checks
+- Unauthorized access
+- Validation errors
+- Book creation and reading
+- Book sharing
+- Book giving
+- Book returning
+- Admin-only operations
+
+To run the API tests locally, start this backend application first and then run:
 
 ```bash
-mvnw.cmd test
+cd ../book-exchange-api-tests
+mvn test
 ```
+
+The API tests are stored in a separate repository to keep the backend application and external API testing suite independent.
 
 ---
 
@@ -169,16 +239,34 @@ mvnw.cmd test
 
 The project is functional as a university backend project and is currently being improved for portfolio use.
 
+Completed portfolio improvements:
+
+- Added clear README documentation
+- Added Swagger/OpenAPI documentation
+- Added MySQL and Docker Compose setup
+- Added separate automated API testing project
+- Added Postman collection in the API testing repository
+- Added GitHub Actions workflow in the API testing repository
+
 Planned improvements:
 
-- Improve README with real API examples
-- Add more unit and integration tests
-- Add DTO mapping layer where needed
+- Improve README with real API request and response examples
+- Add more unit and integration tests inside the main backend project
 - Improve global exception handling
+- Add DTO mapping layer where needed
 - Add database migrations with Flyway or Liquibase
-- Add GitHub Actions CI pipeline
 - Improve Docker Compose to run both the database and application together
-- Add sample Postman collection
+- Improve CI/CD pipeline for backend build and tests
+
+---
+
+## Related Repository
+
+Automated API tests for this project:
+
+```text
+https://github.com/vladwpnz/book-exchange-api-tests
+```
 
 ---
 
