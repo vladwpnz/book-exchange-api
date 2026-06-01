@@ -229,6 +229,20 @@ public class FriendsSharingControllerTest {
     }
 
     @Test
+    @DisplayName("Test for OPTIONS /owned CORS preflight")
+    void testOwnedCorsPreflight() throws Exception {
+        var requestBuilder = options("/owned")
+                .header("Origin", "http://localhost:5174")
+                .header("Access-Control-Request-Method", "GET")
+                .header("Access-Control-Request-Headers", "Authorization, Content-Type, Accept");
+
+        mockMvc.perform(requestBuilder)
+                .andExpect(status().isOk())
+                .andExpect(header().string("Access-Control-Allow-Origin", "http://localhost:5174"))
+                .andExpect(header().string("Access-Control-Allow-Credentials", "true"));
+    }
+
+    @Test
     @WithMockUser(username = "ignat@gmail.com", password = "center", authorities = "ADMIN")
     @DisplayName("Test for GET /items endpoint")
     void testGetItems() throws Exception {
