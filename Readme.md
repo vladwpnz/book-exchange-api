@@ -17,6 +17,7 @@ This project was originally created as a university course project and is being 
 - Spring Web
 - Spring Data JPA
 - Hibernate
+- Flyway
 - Spring Security
 - Bean Validation
 - MySQL
@@ -113,6 +114,8 @@ The `local` profile uses Docker or XAMPP MySQL on `localhost:3306` and database 
 Tests use the `test` profile and database `test_db`.
 
 Docker MySQL should be running before starting the backend or running integration tests.
+
+Flyway manages the database schema. The `local` profile runs schema migrations and local seed data, while the `test` profile runs schema migrations only. Hibernate validates the schema instead of creating or dropping tables.
 
 Configuration files:
 
@@ -285,6 +288,7 @@ Completed portfolio improvements:
 - Added clear README documentation
 - Added Swagger/OpenAPI documentation
 - Added MySQL and Docker Compose setup
+- Added Flyway database migrations
 - Added separate automated API testing project
 - Added Postman collection in the API testing repository
 - Added GitHub Actions workflow in the API testing repository
@@ -295,7 +299,6 @@ Planned improvements:
 - Add more unit and integration tests inside the main backend project
 - Improve global exception handling
 - Add DTO mapping layer where needed
-- Add database migrations with Flyway or Liquibase
 - Improve Docker Compose to run both the database and application together
 - Improve CI/CD pipeline for backend build and tests
 
