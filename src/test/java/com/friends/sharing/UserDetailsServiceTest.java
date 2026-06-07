@@ -37,7 +37,7 @@ public class UserDetailsServiceTest {
     @DisplayName("Test for registration")
     void testRegistration() {
         ResponseEntity<String> expect = new ResponseEntity<>("Successfully registered, your email is your username",
-                HttpStatus.OK);
+                HttpStatus.CREATED);
         RegistrationRequest registrationRequest = new RegistrationRequest(
                 "name",
                 "email@gmail.com",
