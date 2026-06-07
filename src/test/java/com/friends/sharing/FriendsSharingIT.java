@@ -49,7 +49,7 @@ class FriendsSharingIT {
                         "authority":"user"
                         }""");
         mockMvc.perform(requestBuilder)
-                .andExpect(status().isOk())
+                .andExpect(status().isCreated())
                 .andExpect(content().bytes("Successfully registered, your email is your username".getBytes()));
     }
 
@@ -97,7 +97,7 @@ class FriendsSharingIT {
                 .contentType(MediaType.APPLICATION_JSON)
                 .content("{\"author\":\"Joshua Bloch\",\"title\":\"Effective Java\"}");
         mockMvc.perform(requestBuilder)
-                .andExpect(status().isOk())
+                .andExpect(status().isCreated())
                 .andExpect(jsonPath("$.author").value("Joshua Bloch"))
                 .andExpect(jsonPath("$.title").value("Effective Java"))
                 .andExpect(jsonPath("$.person.name").value("vlad"))
@@ -361,8 +361,8 @@ class FriendsSharingIT {
     void testDeleteBook_NoBook() throws Exception {
         var requestBuilder = delete("/book/delete?id=1").with(postProcessor);
         mockMvc.perform(requestBuilder)
-                .andExpect(status().isBadRequest())
-                .andExpect(content().bytes("Wrong id".getBytes()));
+                .andExpect(status().isNotFound())
+                .andExpect(content().bytes("Book not found".getBytes()));
     }
 
     @Test
@@ -385,7 +385,7 @@ class FriendsSharingIT {
     void testForceReturnBook_NoBook() throws Exception {
         var requestBuilder = post("/book/return/force?id=1").with(postProcessor);
         mockMvc.perform(requestBuilder)
-                .andExpect(status().isBadRequest())
-                .andExpect(content().bytes("Wrong id".getBytes()));
+                .andExpect(status().isNotFound())
+                .andExpect(content().bytes("Book not found".getBytes()));
     }
 }

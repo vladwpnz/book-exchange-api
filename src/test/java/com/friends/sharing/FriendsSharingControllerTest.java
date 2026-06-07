@@ -61,7 +61,7 @@ public class FriendsSharingControllerTest {
                 "center",
                 "user"
         );
-        var responseEntity = new ResponseEntity<>("Successfully registered, your email is your username", HttpStatus.OK);
+        var responseEntity = new ResponseEntity<>("Successfully registered, your email is your username", HttpStatus.CREATED);
 
         when(userDetailsService.register(registrationRequest))
                 .thenReturn(responseEntity);
@@ -76,7 +76,7 @@ public class FriendsSharingControllerTest {
                         "authority":"user"
                         }""");
         mockMvc.perform(requestBuilder)
-                .andExpect(status().isOk())
+                .andExpect(status().isCreated())
                 .andExpect(content().bytes("Successfully registered, your email is your username".getBytes()));
     }
 
@@ -157,7 +157,7 @@ public class FriendsSharingControllerTest {
                 .contentType(MediaType.APPLICATION_JSON)
                 .content("{\"author\":\"Joshua Bloch\",\"title\":\"Effective Java\"}");
         mockMvc.perform(requestBuilder)
-                .andExpect(status().isOk())
+                .andExpect(status().isCreated())
                 .andExpect(jsonPath("$.author").value("Joshua Bloch"))
                 .andExpect(jsonPath("$.title").value("Effective Java"))
                 .andExpect(jsonPath("$.person.name").value("vlad"))
@@ -523,8 +523,8 @@ public class FriendsSharingControllerTest {
 
         var requestBuilder = delete("/book/delete?id=1");
         mockMvc.perform(requestBuilder)
-                .andExpect(status().isBadRequest())
-                .andExpect(content().bytes("Wrong id".getBytes()));
+                .andExpect(status().isNotFound())
+                .andExpect(content().bytes("Book not found".getBytes()));
     }
 
     @Test
@@ -547,8 +547,8 @@ public class FriendsSharingControllerTest {
 
         var requestBuilder = post("/book/return/force?id=1");
         mockMvc.perform(requestBuilder)
-                .andExpect(status().isBadRequest())
-                .andExpect(content().bytes("Wrong id".getBytes()));
+                .andExpect(status().isNotFound())
+                .andExpect(content().bytes("Book not found".getBytes()));
     }
 
     @Test

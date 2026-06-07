@@ -30,7 +30,7 @@ public class FriendsSharingController {
     private final FriendsSharingService friendsSharingService;
 
     @Operation(summary = "Register new user")
-    @ApiResponse(responseCode = "200", description = "User registered", content = @Content)
+    @ApiResponse(responseCode = "201", description = "User registered", content = @Content)
     @ApiResponse(responseCode = "400", description = "Wrong authority or user already registered", content = @Content)
 
     @PostMapping("/register")
@@ -40,7 +40,7 @@ public class FriendsSharingController {
 
     @Operation(summary = "Add new book, authorization required",
             security = @SecurityRequirement(name = "basicAuth"))
-    @ApiResponse(responseCode = "200",
+    @ApiResponse(responseCode = "201",
             description = "Added book",
             content = @Content(
                     schema = @Schema(implementation = BookWithUserDTO.class),
@@ -50,6 +50,7 @@ public class FriendsSharingController {
     @ApiResponse(responseCode = "401", description = "Unauthorized", content = @Content)
 
     @PostMapping("/book/add")
+    @ResponseStatus(HttpStatus.CREATED)
     public BookWithUserDTO addBook(@Valid @RequestBody AddBookRequest addBookRequest,
                                    @AuthenticationPrincipal UserAdapter user) {
         return friendsSharingService.addBook(addBookRequest, user.getUser());
@@ -210,7 +211,7 @@ public class FriendsSharingController {
     @Operation(summary = "Delete book, ADMIN authority required",
             security = @SecurityRequirement(name = "basicAuth"))
     @ApiResponse(responseCode = "200", description = "Book deleted", content = @Content)
-    @ApiResponse(responseCode = "400", description = "Wrong id", content = @Content)
+    @ApiResponse(responseCode = "404", description = "Book not found", content = @Content)
     @ApiResponse(responseCode = "401", description = "Unauthorized", content = @Content)
     @ApiResponse(responseCode = "403", description = "Wrong authority", content = @Content)
 
@@ -221,13 +222,13 @@ public class FriendsSharingController {
             return new ResponseEntity<>("Book deleted", HttpStatus.OK);
         }
 
-        return new ResponseEntity<>("Wrong id", HttpStatus.BAD_REQUEST);
+        return new ResponseEntity<>("Book not found", HttpStatus.NOT_FOUND);
     }
 
     @Operation(summary = "Force a return of a book, ADMIN authority required",
             security = @SecurityRequirement(name = "basicAuth"))
     @ApiResponse(responseCode = "200", description = "The book was returned", content = @Content())
-    @ApiResponse(responseCode = "400", description = "Wrong id", content = @Content)
+    @ApiResponse(responseCode = "404", description = "Book not found", content = @Content)
     @ApiResponse(responseCode = "401", description = "Unauthorized", content = @Content)
     @ApiResponse(responseCode = "403", description = "Wrong authority", content = @Content)
 
@@ -238,7 +239,7 @@ public class FriendsSharingController {
             return new ResponseEntity<>("The book was returned", HttpStatus.OK);
         }
 
-        return new ResponseEntity<>("Wrong id", HttpStatus.BAD_REQUEST);
+        return new ResponseEntity<>("Book not found", HttpStatus.NOT_FOUND);
     }
 
     /*@Operation(summary = "Delete present, ADMIN authority required",
