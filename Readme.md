@@ -46,7 +46,7 @@ This project was originally created as a university course project and is being 
 - Request validation
 - API documentation with Swagger/OpenAPI
 - MySQL database integration
-- Docker Compose setup for MySQL and phpMyAdmin
+- Docker Compose setup for local MySQL
 - External automated API test suite in a separate repository
 
 ---
@@ -116,19 +116,46 @@ src/main/resources/application.properties
 
 ## Run the Database with Docker Compose
 
-The current Docker Compose configuration starts MySQL and phpMyAdmin.
+The Docker Compose configuration starts a local MySQL database for development.
+
+Stop XAMPP MySQL before starting Docker MySQL because both use port `3306`.
+
+Copy the example environment file if you want to override the default values:
+
+```bash
+cp .env.example .env
+```
+
+Start MySQL:
 
 ```bash
 docker compose up -d
 ```
 
-Services:
+Database defaults:
 
 - MySQL: `localhost:3306`
 - Database name: `friendssharing`
 - Username: `root`
 - Password: empty
-- phpMyAdmin: `http://localhost:9000`
+
+After the database is running, start the backend:
+
+```bash
+mvn spring-boot:run
+```
+
+Stop MySQL without deleting local database data:
+
+```bash
+docker compose down
+```
+
+Delete local database data only when you intentionally want a clean database:
+
+```bash
+docker compose down -v
+```
 
 ---
 
