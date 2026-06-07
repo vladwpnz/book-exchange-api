@@ -94,7 +94,9 @@ Before running the project, make sure you have installed:
 
 ## Database Configuration
 
-The application uses MySQL.
+The application uses MySQL and Spring profiles for database configuration.
+
+The default profile is `local`.
 
 Default local configuration:
 
@@ -106,10 +108,18 @@ Username: root
 Password: empty
 ```
 
-The database connection is configured in:
+The `local` profile uses Docker or XAMPP MySQL on `localhost:3306` and database `friendssharing`.
+
+Tests use the `test` profile and database `test_db`.
+
+Docker MySQL should be running before starting the backend or running integration tests.
+
+Configuration files:
 
 ```text
 src/main/resources/application.properties
+src/main/resources/application-local.properties
+src/test/resources/application-test.properties
 ```
 
 ---
@@ -219,6 +229,8 @@ Run backend tests with:
 ```bash
 mvn test
 ```
+
+Tests run with the `test` profile and use the `test_db` database.
 
 ---
 
