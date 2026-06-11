@@ -38,6 +38,32 @@ public class FriendsSharingController {
         return userDetailsService.register(registrationRequest);
     }
 
+    @Operation(summary = "Get current user profile, authorization required",
+            security = @SecurityRequirement(name = "basicAuth"))
+    @ApiResponse(responseCode = "200",
+            description = "Current user profile",
+            content = @Content(schema = @Schema(implementation = UserDTO.class)))
+    @ApiResponse(responseCode = "401", description = "Unauthorized", content = @Content)
+
+    @GetMapping("/me")
+    public UserDTO getProfile(@AuthenticationPrincipal UserAdapter user) {
+        return friendsSharingService.getProfile(user.getUser());
+    }
+
+    @Operation(summary = "Update current user profile, authorization required",
+            security = @SecurityRequirement(name = "basicAuth"))
+    @ApiResponse(responseCode = "200",
+            description = "Updated user profile",
+            content = @Content(schema = @Schema(implementation = UserDTO.class)))
+    @ApiResponse(responseCode = "400", description = "Wrong profile data", content = @Content)
+    @ApiResponse(responseCode = "401", description = "Unauthorized", content = @Content)
+
+    @PatchMapping("/me")
+    public UserDTO updateProfile(@Valid @RequestBody UpdateProfileRequest request,
+                                 @AuthenticationPrincipal UserAdapter user) {
+        return friendsSharingService.updateProfile(request, user.getUser());
+    }
+
     @Operation(summary = "Add new book, authorization required",
             security = @SecurityRequirement(name = "basicAuth"))
     @ApiResponse(responseCode = "201",

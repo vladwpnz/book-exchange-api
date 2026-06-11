@@ -21,4 +21,6 @@ public class User
     private String email;
     private String password;
     private Authorities authority;
+    @Column(name = "avatar_url")
+    private String avatarUrl;
 }

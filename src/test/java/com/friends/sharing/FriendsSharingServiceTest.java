@@ -4,6 +4,7 @@ import com.friends.sharing.configuration.security.Authorities;
 import com.friends.sharing.dto.request.AddBookRequest;
 import com.friends.sharing.dto.request.GiveBookRequest;
 import com.friends.sharing.dto.request.ReturnBookRequest;
+import com.friends.sharing.dto.request.UpdateProfileRequest;
 import com.friends.sharing.dto.response.*;
 import com.friends.sharing.exception.ItemException;
 import com.friends.sharing.model.Book;
@@ -50,6 +51,7 @@ public class FriendsSharingServiceTest {
                 .person(UserDTO.builder()
                         .name("vadim")
                         .email("email@gmail.com")
+                        .authority(Authorities.USER)
                         .build())
                 .build();
 
@@ -66,6 +68,7 @@ public class FriendsSharingServiceTest {
                 .person(UserDTO.builder()
                         .name("vadim")
                         .email("email@gmail.com")
+                        .authority(Authorities.USER)
                         .build())
                 .build();
         var expectTwo = BookWithUserDTO.builder()
@@ -97,6 +100,7 @@ public class FriendsSharingServiceTest {
                 .person(UserDTO.builder()
                         .name("vadim")
                         .email("email@gmail.com")
+                        .authority(Authorities.USER)
                         .build())
                 .build();
         var expect = ItemsWithUser.builder().books(List.of(expectOne)).build();
@@ -135,6 +139,42 @@ public class FriendsSharingServiceTest {
         ));
 
         assertThat(friendsSharingService.getItems())
+                .isEqualTo(expect);
+    }
+
+    @Test
+    @DisplayName("Test for getProfile() method")
+    void testGetProfile() {
+        var expect = UserDTO.builder()
+                .name("vadim")
+                .email("email@gmail.com")
+                .authority(Authorities.USER)
+                .build();
+
+        assertThat(friendsSharingService.getProfile(user))
+                .isEqualTo(expect);
+    }
+
+    @Test
+    @DisplayName("Test for updateProfile() method")
+    void testUpdateProfile() {
+        var request = new UpdateProfileRequest("New Name");
+        var savedUser = User.builder()
+                .user_id(1L)
+                .name("New Name")
+                .email("email@gmail.com")
+                .password("1234")
+                .authority(Authorities.USER)
+                .build();
+        var expect = UserDTO.builder()
+                .name("New Name")
+                .email("email@gmail.com")
+                .authority(Authorities.USER)
+                .build();
+
+        when(userRepository.save(user)).thenReturn(savedUser);
+
+        assertThat(friendsSharingService.updateProfile(request, user))
                 .isEqualTo(expect);
     }
 

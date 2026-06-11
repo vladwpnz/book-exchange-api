@@ -28,6 +28,8 @@ public class SecurityConfig {
         http.cors(Customizer.withDefaults())
                 .authorizeHttpRequests(auth -> auth
                         .requestMatchers(HttpMethod.POST, "/register").permitAll()
+                        .requestMatchers(HttpMethod.GET, "/me").hasAnyAuthority(allAuthorities)
+                        .requestMatchers(HttpMethod.PATCH, "/me").hasAnyAuthority(allAuthorities)
                         .requestMatchers(HttpMethod.GET, "/held").hasAnyAuthority(allAuthorities)
                         .requestMatchers(HttpMethod.GET, "/owned").hasAnyAuthority(allAuthorities)
                         .requestMatchers(HttpMethod.GET, "/items")

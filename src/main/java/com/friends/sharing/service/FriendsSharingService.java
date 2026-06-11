@@ -52,6 +52,18 @@ public class FriendsSharingService {
         return Mapper.mapToPresentWithUserDTO(present, user);
     }*/
 
+    public UserDTO getProfile(User user) {
+        return Mapper.mapToUserDTO(user);
+    }
+
+    @Transactional
+    public UserDTO updateProfile(UpdateProfileRequest request, User user) {
+        user.setName(request.getName());
+        User savedUser = userRepository.save(user);
+
+        return Mapper.mapToUserDTO(savedUser);
+    }
+
     public ItemsWithUser getHeldItems(User user) {
         List<BookWithUserDTO> books = bookRepository.findHeldBooks(user.getUser_id())
                 .stream()

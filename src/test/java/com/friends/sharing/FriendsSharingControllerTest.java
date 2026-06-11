@@ -8,6 +8,7 @@ import com.friends.sharing.dto.request.AddBookRequest;
 import com.friends.sharing.dto.request.GiveBookRequest;
 import com.friends.sharing.dto.request.RegistrationRequest;
 import com.friends.sharing.dto.request.ReturnBookRequest;
+import com.friends.sharing.dto.request.UpdateProfileRequest;
 import com.friends.sharing.dto.response.*;
 import com.friends.sharing.exception.ItemException;
 import com.friends.sharing.model.User;
@@ -136,6 +137,55 @@ public class FriendsSharingControllerTest {
         mockMvc.perform(requestBuilder)
                 .andExpect(status().isBadRequest())
                 .andExpect(content().bytes("Such a user already exists!".getBytes()));
+    }
+
+    @Test
+    @DisplayName("Test for GET /me endpoint")
+    void testGetProfile() throws Exception {
+        var response = UserDTO.builder()
+                .name("vlad")
+                .email("ignat@gmail.com")
+                .authority(Authorities.USER)
+                .build();
+
+        when(friendsSharingService.getProfile(user)).thenReturn(response);
+        SecurityContextHolder.getContext().setAuthentication(new PreAuthenticatedAuthenticationToken(
+                new UserAdapter(user), null, List.of(new SimpleGrantedAuthority(user.getAuthority().toString()))
+        )); //initialize user in program
+
+        var requestBuilder = get("/me");
+        mockMvc.perform(requestBuilder)
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.name").value("vlad"))
+                .andExpect(jsonPath("$.email").value("ignat@gmail.com"))
+                .andExpect(jsonPath("$.authority").value("USER"))
+                .andExpect(jsonPath("$.password").doesNotExist());
+    }
+
+    @Test
+    @DisplayName("Test for PATCH /me endpoint")
+    void testUpdateProfile() throws Exception {
+        var request = new UpdateProfileRequest("New Name");
+        var response = UserDTO.builder()
+                .name("New Name")
+                .email("ignat@gmail.com")
+                .authority(Authorities.USER)
+                .build();
+
+        when(friendsSharingService.updateProfile(request, user)).thenReturn(response);
+        SecurityContextHolder.getContext().setAuthentication(new PreAuthenticatedAuthenticationToken(
+                new UserAdapter(user), null, List.of(new SimpleGrantedAuthority(user.getAuthority().toString()))
+        )); //initialize user in program
+
+        var requestBuilder = patch("/me")
+                .contentType(MediaType.APPLICATION_JSON)
+                .content("{\"name\":\"New Name\"}");
+        mockMvc.perform(requestBuilder)
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.name").value("New Name"))
+                .andExpect(jsonPath("$.email").value("ignat@gmail.com"))
+                .andExpect(jsonPath("$.authority").value("USER"))
+                .andExpect(jsonPath("$.password").doesNotExist());
     }
 
     @Test
@@ -594,6 +644,13 @@ public class FriendsSharingControllerTest {
                 .andExpect(status().isBadRequest())
                 .andExpect(jsonPath("$.error")
                         .value("Write down the title of the book you want to return!"));
+
+        var requestNoProfileName = patch("/me")
+                .contentType(MediaType.APPLICATION_JSON)
+                .content("{\"name\":\"\"}");
+        mockMvc.perform(requestNoProfileName)
+                .andExpect(status().isBadRequest())
+                .andExpect(jsonPath("$.error").value("Write down your name!"));
 
         var requestNoAuthority = post("/register")
                 .contentType(MediaType.APPLICATION_JSON)
