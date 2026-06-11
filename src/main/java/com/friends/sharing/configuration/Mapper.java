@@ -10,6 +10,8 @@ public class Mapper {
         return UserDTO.builder()
                 .name(user.getName())
                 .email(user.getEmail())
+                .authority(user.getAuthority())
+                .avatarUrl(user.getAvatarUrl())
                 .build();
     }
 
