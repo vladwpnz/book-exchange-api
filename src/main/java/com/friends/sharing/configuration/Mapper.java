@@ -2,6 +2,7 @@ package com.friends.sharing.configuration;
 
 import com.friends.sharing.dto.response.*;
 import com.friends.sharing.model.Book;
+import com.friends.sharing.model.BookCatalog;
 import com.friends.sharing.model.Present;
 import com.friends.sharing.model.User;
 
@@ -38,6 +39,18 @@ public class Mapper {
                 .title(book.getTitle())
                 .holder_id(book.getHolder().getUser_id())
                 .owner_id(book.getOwner().getUser_id())
+                .build();
+    }
+
+    public static BookCatalogDTO mapToBookCatalogDTO(BookCatalog bookCatalog) {
+        return BookCatalogDTO.builder()
+                .catalogBookId(bookCatalog.getCatalogBookId())
+                .title(bookCatalog.getTitle())
+                .author(bookCatalog.getAuthor())
+                .genre(bookCatalog.getGenre())
+                .description(bookCatalog.getDescription())
+                .coverUrl(bookCatalog.getCoverUrl())
+                .isbn(bookCatalog.getIsbn())
                 .build();
     }
 

@@ -215,6 +215,120 @@ public class FriendsSharingControllerTest {
     }
 
     @Test
+    @WithMockUser(username = "ignat@gmail.com", password = "center", authorities = "USER")
+    @DisplayName("Test for GET /catalog/books endpoint")
+    void testGetCatalogBooks() throws Exception {
+        var response = BookCatalogItems.builder()
+                .books(List.of(BookCatalogDTO.builder()
+                        .catalogBookId(1L)
+                        .title("Dune")
+                        .author("Frank Herbert")
+                        .genre("Science Fiction")
+                        .description("Desert politics and prophecy.")
+                        .build()))
+                .build();
+
+        when(friendsSharingService.getCatalogBooks(null)).thenReturn(response);
+
+        var requestBuilder = get("/catalog/books");
+        mockMvc.perform(requestBuilder)
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.books[0].catalogBookId").value(1))
+                .andExpect(jsonPath("$.books[0].title").value("Dune"))
+                .andExpect(jsonPath("$.books[0].author").value("Frank Herbert"))
+                .andExpect(jsonPath("$.books[0].genre").value("Science Fiction"))
+                .andExpect(jsonPath("$.books[0].description").value("Desert politics and prophecy."));
+    }
+
+    @Test
+    @WithMockUser(username = "ignat@gmail.com", password = "center", authorities = "USER")
+    @DisplayName("Test for GET /catalog/books endpoint(search)")
+    void testSearchCatalogBooks() throws Exception {
+        var response = BookCatalogItems.builder()
+                .books(List.of(BookCatalogDTO.builder()
+                        .catalogBookId(1L)
+                        .title("Design Patterns")
+                        .author("Erich Gamma, Richard Helm, Ralph Johnson, John Vlissides")
+                        .genre("Programming")
+                        .description("Reusable object-oriented patterns.")
+                        .isbn("9780201633610")
+                        .build()))
+                .build();
+
+        when(friendsSharingService.getCatalogBooks("De")).thenReturn(response);
+
+        var requestBuilder = get("/catalog/books").param("query", "De");
+        mockMvc.perform(requestBuilder)
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.books[0].catalogBookId").value(1))
+                .andExpect(jsonPath("$.books[0].title").value("Design Patterns"))
+                .andExpect(jsonPath("$.books[0].author")
+                        .value("Erich Gamma, Richard Helm, Ralph Johnson, John Vlissides"))
+                .andExpect(jsonPath("$.books[0].genre").value("Programming"))
+                .andExpect(jsonPath("$.books[0].isbn").value("9780201633610"));
+    }
+
+    @Test
+    @WithMockUser(username = "ignat@gmail.com", password = "center", authorities = "USER")
+    @DisplayName("Test for GET /catalog/books/{id} endpoint")
+    void testGetCatalogBook() throws Exception {
+        var response = BookCatalogDTO.builder()
+                .catalogBookId(1L)
+                .title("The Hobbit")
+                .author("J.R.R. Tolkien")
+                .genre("Fantasy")
+                .description("A reluctant traveler joins a quest.")
+                .build();
+
+        when(friendsSharingService.getCatalogBook(1L)).thenReturn(response);
+
+        var requestBuilder = get("/catalog/books/1");
+        mockMvc.perform(requestBuilder)
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.catalogBookId").value(1))
+                .andExpect(jsonPath("$.title").value("The Hobbit"))
+                .andExpect(jsonPath("$.author").value("J.R.R. Tolkien"))
+                .andExpect(jsonPath("$.genre").value("Fantasy"))
+                .andExpect(jsonPath("$.description").value("A reluctant traveler joins a quest."));
+    }
+
+    @Test
+    @DisplayName("Test for POST /book/add/from-catalog endpoint")
+    void testAddBookFromCatalog() throws Exception {
+        var response = BookWithUserDTO.builder()
+                .author("J.R.R. Tolkien")
+                .title("The Hobbit")
+                .person(UserDTO.builder().name("vlad").email("ignat@gmail.com").build())
+                .build();
+
+        when(friendsSharingService.addBookFromCatalog(1L, user)).thenReturn(response);
+        SecurityContextHolder.getContext().setAuthentication(new PreAuthenticatedAuthenticationToken(
+                new UserAdapter(user), null, List.of(new SimpleGrantedAuthority(user.getAuthority().toString()))
+        )); //initialize user in program
+
+        var requestBuilder = post("/book/add/from-catalog").param("id", "1");
+        mockMvc.perform(requestBuilder)
+                .andExpect(status().isCreated())
+                .andExpect(jsonPath("$.author").value("J.R.R. Tolkien"))
+                .andExpect(jsonPath("$.title").value("The Hobbit"))
+                .andExpect(jsonPath("$.person.name").value("vlad"))
+                .andExpect(jsonPath("$.person.email").value("ignat@gmail.com"));
+    }
+
+    @Test
+    @WithMockUser(username = "ignat@gmail.com", password = "center", authorities = "USER")
+    @DisplayName("Test for GET /catalog/books/{id} endpoint(no catalog book)")
+    void testGetCatalogBook_NoBook() throws Exception {
+        when(friendsSharingService.getCatalogBook(1L))
+                .thenThrow(new ItemException("Catalog book not found"));
+
+        var requestBuilder = get("/catalog/books/1");
+        mockMvc.perform(requestBuilder)
+                .andExpect(status().isBadRequest())
+                .andExpect(jsonPath("$.error").value("Catalog book not found"));
+    }
+
+    @Test
     @DisplayName("Test for GET /held endpoint")
     void testGetHeldBooks() throws Exception {
         var expectOne = BookWithUserDTO.builder()

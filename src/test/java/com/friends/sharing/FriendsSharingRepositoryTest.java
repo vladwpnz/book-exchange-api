@@ -2,8 +2,10 @@ package com.friends.sharing;
 
 import com.friends.sharing.configuration.security.Authorities;
 import com.friends.sharing.model.Book;
+import com.friends.sharing.model.BookCatalog;
 import com.friends.sharing.model.Present;
 import com.friends.sharing.model.User;
+import com.friends.sharing.repository.BookCatalogRepository;
 import com.friends.sharing.repository.BookRepository;
 import com.friends.sharing.repository.PresentRepository;
 import com.friends.sharing.repository.UserRepository;
@@ -27,6 +29,9 @@ import static org.assertj.core.api.Assertions.assertThat;
 public class FriendsSharingRepositoryTest {
     @Autowired
     BookRepository bookRepository;
+
+    @Autowired
+    BookCatalogRepository bookCatalogRepository;
 
     @Autowired
     UserRepository userRepository;
@@ -105,6 +110,25 @@ public class FriendsSharingRepositoryTest {
                 .isPresent()
                 .get()
                 .isEqualTo(expect);
+    }
+
+    @Test
+    @DisplayName("Test for searchByTitleOrAuthor() method in BookCatalogRepository")
+    @Sql(statements = {"INSERT INTO book_catalog(catalog_book_id, title, author, genre, description) " +
+            "VALUES (100, 'Repository Search Book', 'Unique Catalog Author', 'Programming', 'Search row')"})
+    void searchByTitleOrAuthorTest_BookCatalogRepository() {
+        var expect = BookCatalog.builder()
+                .catalogBookId(100L)
+                .title("Repository Search Book")
+                .author("Unique Catalog Author")
+                .genre("Programming")
+                .description("Search row")
+                .build();
+
+        List<BookCatalog> actual = bookCatalogRepository.searchByTitleOrAuthor("unique catalog");
+        assertThat(actual)
+                .hasSize(1)
+                .contains(expect);
     }
 
     @Test
