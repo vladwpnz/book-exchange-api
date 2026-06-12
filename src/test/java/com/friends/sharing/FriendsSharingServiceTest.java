@@ -8,7 +8,9 @@ import com.friends.sharing.dto.request.UpdateProfileRequest;
 import com.friends.sharing.dto.response.*;
 import com.friends.sharing.exception.ItemException;
 import com.friends.sharing.model.Book;
+import com.friends.sharing.model.BookCatalog;
 import com.friends.sharing.model.User;
+import com.friends.sharing.repository.BookCatalogRepository;
 import com.friends.sharing.repository.BookRepository;
 import com.friends.sharing.repository.UserRepository;
 import com.friends.sharing.service.FriendsSharingService;
@@ -23,6 +25,7 @@ import org.mockito.junit.jupiter.MockitoExtension;
 import java.util.List;
 import java.util.Optional;
 
+import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
@@ -33,6 +36,8 @@ public class FriendsSharingServiceTest {
     UserRepository userRepository;
     @Mock
     BookRepository bookRepository;
+    @Mock
+    BookCatalogRepository bookCatalogRepository;
 
     @InjectMocks
     FriendsSharingService friendsSharingService;
@@ -57,6 +62,123 @@ public class FriendsSharingServiceTest {
 
         assertThat(friendsSharingService.addBook(request, user))
                 .isEqualTo(expect);
+    }
+
+    @Test
+    @DisplayName("Test for getCatalogBooks() method")
+    void testGetCatalogBooks() {
+        var catalogBook = BookCatalog.builder()
+                .catalogBookId(1L)
+                .title("Dune")
+                .author("Frank Herbert")
+                .genre("Science Fiction")
+                .description("Desert politics and prophecy.")
+                .build();
+        var expect = BookCatalogItems.builder()
+                .books(List.of(BookCatalogDTO.builder()
+                        .catalogBookId(1L)
+                        .title("Dune")
+                        .author("Frank Herbert")
+                        .genre("Science Fiction")
+                        .description("Desert politics and prophecy.")
+                        .build()))
+                .build();
+
+        when(bookCatalogRepository.findAll()).thenReturn(List.of(catalogBook));
+
+        assertThat(friendsSharingService.getCatalogBooks(null))
+                .isEqualTo(expect);
+    }
+
+    @Test
+    @DisplayName("Test for getCatalogBooks() method(search)")
+    void testGetCatalogBooks_Search() {
+        var catalogBook = BookCatalog.builder()
+                .catalogBookId(1L)
+                .title("Design Patterns")
+                .author("Erich Gamma, Richard Helm, Ralph Johnson, John Vlissides")
+                .genre("Programming")
+                .description("Reusable object-oriented patterns.")
+                .isbn("9780201633610")
+                .build();
+        var expect = BookCatalogItems.builder()
+                .books(List.of(BookCatalogDTO.builder()
+                        .catalogBookId(1L)
+                        .title("Design Patterns")
+                        .author("Erich Gamma, Richard Helm, Ralph Johnson, John Vlissides")
+                        .genre("Programming")
+                        .description("Reusable object-oriented patterns.")
+                        .isbn("9780201633610")
+                        .build()))
+                .build();
+
+        when(bookCatalogRepository.searchByTitleOrAuthor("De")).thenReturn(List.of(catalogBook));
+
+        assertThat(friendsSharingService.getCatalogBooks(" De "))
+                .isEqualTo(expect);
+    }
+
+    @Test
+    @DisplayName("Test for getCatalogBook() method")
+    void testGetCatalogBook() {
+        var catalogBook = BookCatalog.builder()
+                .catalogBookId(1L)
+                .title("The Hobbit")
+                .author("J.R.R. Tolkien")
+                .genre("Fantasy")
+                .description("A reluctant traveler joins a quest.")
+                .build();
+        var expect = BookCatalogDTO.builder()
+                .catalogBookId(1L)
+                .title("The Hobbit")
+                .author("J.R.R. Tolkien")
+                .genre("Fantasy")
+                .description("A reluctant traveler joins a quest.")
+                .build();
+
+        when(bookCatalogRepository.findById(1L)).thenReturn(Optional.of(catalogBook));
+
+        assertThat(friendsSharingService.getCatalogBook(1L))
+                .isEqualTo(expect);
+    }
+
+    @Test
+    @DisplayName("Test for addBookFromCatalog() method")
+    void testAddBookFromCatalog() {
+        var catalogBook = BookCatalog.builder()
+                .catalogBookId(1L)
+                .title("The Hobbit")
+                .author("J.R.R. Tolkien")
+                .genre("Fantasy")
+                .build();
+        var expect = BookWithUserDTO.builder()
+                .author("J.R.R. Tolkien")
+                .title("The Hobbit")
+                .person(UserDTO.builder()
+                        .name("vadim")
+                        .email("email@gmail.com")
+                        .authority(Authorities.USER)
+                        .build())
+                .build();
+
+        when(bookCatalogRepository.findById(1L)).thenReturn(Optional.of(catalogBook));
+
+        assertThat(friendsSharingService.addBookFromCatalog(1L, user))
+                .isEqualTo(expect);
+        verify(bookRepository).save(Book.builder()
+                .author("J.R.R. Tolkien")
+                .title("The Hobbit")
+                .holder(user)
+                .owner(user)
+                .build());
+    }
+
+    @Test
+    @DisplayName("Test for getCatalogBook() method(no catalog book)")
+    void testGetCatalogBook_NoBook() {
+        assertThatThrownBy(() -> friendsSharingService.getCatalogBook(1L))
+                .isInstanceOf(ItemException.class)
+                .hasMessage("Catalog book not found");
     }
 
     @Test

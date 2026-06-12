@@ -142,6 +142,39 @@ class FriendsSharingIT {
     }
 
     @Test
+    @DisplayName("Test for catalog browse and add flow")
+    @Sql(statements = createUser)
+    void testCatalogBrowseAndAddFlow() throws Exception {
+        mockMvc.perform(get("/catalog/books").with(postProcessor))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.books").isArray());
+
+        mockMvc.perform(get("/catalog/books")
+                        .with(postProcessor)
+                        .param("query", "Domain-Driven"))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.books[0].title").value("Domain-Driven Design"))
+                .andExpect(jsonPath("$.books[0].author").value("Eric Evans"));
+
+        mockMvc.perform(get("/catalog/books/6").with(postProcessor))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.title").value("The Hobbit"))
+                .andExpect(jsonPath("$.author").value("J.R.R. Tolkien"));
+
+        mockMvc.perform(post("/book/add/from-catalog")
+                        .with(postProcessor)
+                        .param("id", "6"))
+                .andExpect(status().isCreated())
+                .andExpect(jsonPath("$.title").value("The Hobbit"))
+                .andExpect(jsonPath("$.author").value("J.R.R. Tolkien"));
+
+        mockMvc.perform(get("/owned").with(postProcessor))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.books[0].title").value("The Hobbit"))
+                .andExpect(jsonPath("$.books[0].author").value("J.R.R. Tolkien"));
+    }
+
+    @Test
     @DisplayName("Test for GET /items endpoint")
     @Sql(statements = {createAdmin,
             "INSERT INTO user(user_id, email, name, authority) VALUES (2, 'email@gmail.com', 'vadim', 0)",
@@ -367,7 +400,7 @@ class FriendsSharingIT {
 
     @Test
     @DisplayName("Test for POST /book/return/force endpoint")
-    @Sql(statements = {createUser,
+    @Sql(statements = {createAdmin,
             "INSERT INTO user(user_id, email, name, authority) VALUES (2, 'email@gmail.com', 'vadim', 0)",
             "INSERT INTO books(book_id, owner_id, holder_id, author, title)" +
                     "VALUES (1, 2, 1, 'Joshua Bloch', 'Effective Java')"

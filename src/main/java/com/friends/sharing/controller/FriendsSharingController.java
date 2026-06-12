@@ -82,6 +82,50 @@ public class FriendsSharingController {
         return friendsSharingService.addBook(addBookRequest, user.getUser());
     }
 
+    @Operation(summary = "Get book catalog, authorization required",
+            security = @SecurityRequirement(name = "basicAuth"))
+    @ApiResponse(responseCode = "200",
+            description = "Catalog books",
+            content = @Content(schema = @Schema(implementation = BookCatalogItems.class)))
+    @ApiResponse(responseCode = "401", description = "Unauthorized", content = @Content)
+
+    @GetMapping("/catalog/books")
+    public BookCatalogItems getCatalogBooks(
+            @Parameter(description = "Optional title or author search query")
+            @RequestParam(required = false) String query) {
+        return friendsSharingService.getCatalogBooks(query);
+    }
+
+    @Operation(summary = "Get one catalog book, authorization required",
+            security = @SecurityRequirement(name = "basicAuth"))
+    @ApiResponse(responseCode = "200",
+            description = "Catalog book",
+            content = @Content(schema = @Schema(implementation = BookCatalogDTO.class)))
+    @ApiResponse(responseCode = "400", description = "Catalog book not found", content = @Content)
+    @ApiResponse(responseCode = "401", description = "Unauthorized", content = @Content)
+
+    @GetMapping("/catalog/books/{id}")
+    public BookCatalogDTO getCatalogBook(@Parameter(description = "Catalog book ID")
+                                         @PathVariable Long id) {
+        return friendsSharingService.getCatalogBook(id);
+    }
+
+    @Operation(summary = "Add a book from catalog, authorization required",
+            security = @SecurityRequirement(name = "basicAuth"))
+    @ApiResponse(responseCode = "201",
+            description = "Added book",
+            content = @Content(schema = @Schema(implementation = BookWithUserDTO.class)))
+    @ApiResponse(responseCode = "400", description = "Catalog book not found", content = @Content)
+    @ApiResponse(responseCode = "401", description = "Unauthorized", content = @Content)
+
+    @PostMapping("/book/add/from-catalog")
+    @ResponseStatus(HttpStatus.CREATED)
+    public BookWithUserDTO addBookFromCatalog(@Parameter(description = "Catalog book ID")
+                                              @RequestParam Long id,
+                                              @AuthenticationPrincipal UserAdapter user) {
+        return friendsSharingService.addBookFromCatalog(id, user.getUser());
+    }
+
     /*@Operation(summary = "Add present, authorization required",
             security = @SecurityRequirement(name = "basicAuth"))
     @ApiResponse(responseCode = "200",

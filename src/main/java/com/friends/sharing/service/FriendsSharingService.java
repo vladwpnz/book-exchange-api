@@ -5,8 +5,10 @@ import com.friends.sharing.dto.request.*;
 import com.friends.sharing.dto.response.*;
 import com.friends.sharing.exception.ItemException;
 import com.friends.sharing.model.Book;
+import com.friends.sharing.model.BookCatalog;
 import com.friends.sharing.model.Present;
 import com.friends.sharing.model.User;
+import com.friends.sharing.repository.BookCatalogRepository;
 import com.friends.sharing.repository.BookRepository;
 import com.friends.sharing.repository.PresentRepository;
 import com.friends.sharing.repository.UserRepository;
@@ -15,6 +17,7 @@ import lombok.AllArgsConstructor;
 
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.util.StringUtils;
 
 import java.util.List;
 import java.util.Optional;
@@ -23,6 +26,7 @@ import java.util.Optional;
 @AllArgsConstructor
 public class FriendsSharingService {
     private final BookRepository bookRepository;
+    private final BookCatalogRepository bookCatalogRepository;
     private final PresentRepository presentRepository;
     private final UserRepository userRepository;
 
@@ -37,6 +41,41 @@ public class FriendsSharingService {
         bookRepository.save(book);
 
         return Mapper.mapToBookWithUserDTO(book, user);
+    }
+
+    public BookCatalogItems getCatalogBooks(String query) {
+        List<BookCatalog> catalogBooks = StringUtils.hasText(query)
+                ? bookCatalogRepository.searchByTitleOrAuthor(query.trim())
+                : bookCatalogRepository.findAll();
+
+        List<BookCatalogDTO> books = catalogBooks.stream()
+                .map(Mapper::mapToBookCatalogDTO)
+                .toList();
+
+        return BookCatalogItems.builder().books(books).build();
+    }
+
+    public BookCatalogDTO getCatalogBook(Long id) {
+        return Mapper.mapToBookCatalogDTO(findCatalogBook(id));
+    }
+
+    @Transactional
+    public BookWithUserDTO addBookFromCatalog(Long id, User user) {
+        BookCatalog catalogBook = findCatalogBook(id);
+        Book book = Book.builder()
+                .author(catalogBook.getAuthor())
+                .title(catalogBook.getTitle())
+                .holder(user)
+                .owner(user)
+                .build();
+        bookRepository.save(book);
+
+        return Mapper.mapToBookWithUserDTO(book, user);
+    }
+
+    private BookCatalog findCatalogBook(Long id) {
+        return bookCatalogRepository.findById(id)
+                .orElseThrow(() -> new ItemException("Catalog book not found"));
     }
 
     /*@Transactional
