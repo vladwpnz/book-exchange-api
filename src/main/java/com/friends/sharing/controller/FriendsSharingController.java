@@ -116,6 +116,7 @@ public class FriendsSharingController {
             description = "Added book",
             content = @Content(schema = @Schema(implementation = BookWithUserDTO.class)))
     @ApiResponse(responseCode = "400", description = "Catalog book not found", content = @Content)
+    @ApiResponse(responseCode = "409", description = "Catalog book already added by current user", content = @Content)
     @ApiResponse(responseCode = "401", description = "Unauthorized", content = @Content)
 
     @PostMapping("/book/add/from-catalog")
