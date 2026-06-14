@@ -1,5 +1,6 @@
 package com.friends.sharing.controller.advice;
 
+import com.friends.sharing.exception.ConflictException;
 import com.friends.sharing.exception.ItemException;
 
 import org.springframework.http.HttpStatus;
@@ -24,6 +25,12 @@ public class FriendsSharingAdvice {
     @ExceptionHandler(ItemException.class)
     @ResponseStatus(HttpStatus.BAD_REQUEST)
     public Map<String, String> handleCreateOrderException(ItemException exception) {
+        return Map.of("error", exception.getMessage());
+    }
+
+    @ExceptionHandler(ConflictException.class)
+    @ResponseStatus(HttpStatus.CONFLICT)
+    public Map<String, String> handleConflictException(ConflictException exception) {
         return Map.of("error", exception.getMessage());
     }
 }

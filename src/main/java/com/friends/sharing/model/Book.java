@@ -22,4 +22,7 @@ public class Book {
     @ManyToOne
     @JoinColumn(name = "owner_id")
     private User owner;
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "catalog_book_id")
+    private BookCatalog catalogBook;
 }

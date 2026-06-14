@@ -6,6 +6,7 @@ import com.friends.sharing.dto.request.GiveBookRequest;
 import com.friends.sharing.dto.request.ReturnBookRequest;
 import com.friends.sharing.dto.request.UpdateProfileRequest;
 import com.friends.sharing.dto.response.*;
+import com.friends.sharing.exception.ConflictException;
 import com.friends.sharing.exception.ItemException;
 import com.friends.sharing.model.Book;
 import com.friends.sharing.model.BookCatalog;
@@ -21,10 +22,15 @@ import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
+import org.springframework.dao.DataIntegrityViolationException;
 
+import java.sql.SQLException;
 import java.util.List;
 import java.util.Optional;
 
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.Mockito.doThrow;
+import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 import static org.assertj.core.api.Assertions.assertThat;
@@ -165,12 +171,79 @@ public class FriendsSharingServiceTest {
 
         assertThat(friendsSharingService.addBookFromCatalog(1L, user))
                 .isEqualTo(expect);
-        verify(bookRepository).save(Book.builder()
+        verify(bookRepository).saveAndFlush(Book.builder()
                 .author("J.R.R. Tolkien")
                 .title("The Hobbit")
                 .holder(user)
                 .owner(user)
+                .catalogBook(catalogBook)
                 .build());
+    }
+
+    @Test
+    @DisplayName("Test for addBookFromCatalog() method(duplicate)")
+    void testAddBookFromCatalog_Duplicate() {
+        var catalogBook = BookCatalog.builder()
+                .catalogBookId(1L)
+                .title("The Hobbit")
+                .author("J.R.R. Tolkien")
+                .genre("Fantasy")
+                .build();
+
+        when(bookCatalogRepository.findById(1L)).thenReturn(Optional.of(catalogBook));
+        when(bookRepository.existsByOwnerIdAndCatalogBookId(1L, 1L)).thenReturn(true);
+
+        assertThatThrownBy(() -> friendsSharingService.addBookFromCatalog(1L, user))
+                .isInstanceOf(ConflictException.class)
+                .hasMessage("You have already added this catalog book");
+        verify(bookRepository, never()).saveAndFlush(any(Book.class));
+    }
+
+    @Test
+    @DisplayName("Test for addBookFromCatalog() method(duplicate constraint violation)")
+    void testAddBookFromCatalog_DuplicateConstraintViolation() {
+        var catalogBook = BookCatalog.builder()
+                .catalogBookId(1L)
+                .title("The Hobbit")
+                .author("J.R.R. Tolkien")
+                .genre("Fantasy")
+                .build();
+        var constraintViolationException = new org.hibernate.exception.ConstraintViolationException(
+                "Duplicate catalog book",
+                new SQLException("Duplicate entry"),
+                "uq_books_owner_catalog_book");
+        var dataIntegrityViolationException = new DataIntegrityViolationException(
+                "Duplicate catalog book", constraintViolationException);
+
+        when(bookCatalogRepository.findById(1L)).thenReturn(Optional.of(catalogBook));
+        doThrow(dataIntegrityViolationException).when(bookRepository).saveAndFlush(any(Book.class));
+
+        assertThatThrownBy(() -> friendsSharingService.addBookFromCatalog(1L, user))
+                .isInstanceOf(ConflictException.class)
+                .hasMessage("You have already added this catalog book");
+    }
+
+    @Test
+    @DisplayName("Test for addBookFromCatalog() method(unrelated data integrity violation)")
+    void testAddBookFromCatalog_UnrelatedDataIntegrityViolation() {
+        var catalogBook = BookCatalog.builder()
+                .catalogBookId(1L)
+                .title("The Hobbit")
+                .author("J.R.R. Tolkien")
+                .genre("Fantasy")
+                .build();
+        var constraintViolationException = new org.hibernate.exception.ConstraintViolationException(
+                "Other integrity violation",
+                new SQLException("Other constraint"),
+                "other_constraint");
+        var dataIntegrityViolationException = new DataIntegrityViolationException(
+                "Other integrity violation", constraintViolationException);
+
+        when(bookCatalogRepository.findById(1L)).thenReturn(Optional.of(catalogBook));
+        doThrow(dataIntegrityViolationException).when(bookRepository).saveAndFlush(any(Book.class));
+
+        assertThatThrownBy(() -> friendsSharingService.addBookFromCatalog(1L, user))
+                .isSameAs(dataIntegrityViolationException);
     }
 
     @Test

@@ -3,6 +3,7 @@ package com.friends.sharing.service;
 import com.friends.sharing.configuration.Mapper;
 import com.friends.sharing.dto.request.*;
 import com.friends.sharing.dto.response.*;
+import com.friends.sharing.exception.ConflictException;
 import com.friends.sharing.exception.ItemException;
 import com.friends.sharing.model.Book;
 import com.friends.sharing.model.BookCatalog;
@@ -15,6 +16,8 @@ import com.friends.sharing.repository.UserRepository;
 
 import lombok.AllArgsConstructor;
 
+import org.hibernate.exception.ConstraintViolationException;
+import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.util.StringUtils;
@@ -25,6 +28,8 @@ import java.util.Optional;
 @Service
 @AllArgsConstructor
 public class FriendsSharingService {
+    private static final String DUPLICATE_CATALOG_BOOK_CONSTRAINT = "uq_books_owner_catalog_book";
+
     private final BookRepository bookRepository;
     private final BookCatalogRepository bookCatalogRepository;
     private final PresentRepository presentRepository;
@@ -62,15 +67,45 @@ public class FriendsSharingService {
     @Transactional
     public BookWithUserDTO addBookFromCatalog(Long id, User user) {
         BookCatalog catalogBook = findCatalogBook(id);
+        if (bookRepository.existsByOwnerIdAndCatalogBookId(user.getUser_id(), catalogBook.getCatalogBookId())) {
+            throw duplicateCatalogBookException();
+        }
+
         Book book = Book.builder()
                 .author(catalogBook.getAuthor())
                 .title(catalogBook.getTitle())
                 .holder(user)
                 .owner(user)
+                .catalogBook(catalogBook)
                 .build();
-        bookRepository.save(book);
+        try {
+            bookRepository.saveAndFlush(book);
+        } catch (DataIntegrityViolationException exception) {
+            if (!isDuplicateCatalogBookConstraint(exception)) {
+                throw exception;
+            }
+            throw duplicateCatalogBookException();
+        }
 
         return Mapper.mapToBookWithUserDTO(book, user);
+    }
+
+    private boolean isDuplicateCatalogBookConstraint(DataIntegrityViolationException exception) {
+        Throwable cause = exception;
+        while (cause != null) {
+            if (cause instanceof ConstraintViolationException constraintViolationException
+                    && DUPLICATE_CATALOG_BOOK_CONSTRAINT.equals(
+                            constraintViolationException.getConstraintName())) {
+                return true;
+            }
+            cause = cause.getCause();
+        }
+
+        return false;
+    }
+
+    private ConflictException duplicateCatalogBookException() {
+        return new ConflictException("You have already added this catalog book");
     }
 
     private BookCatalog findCatalogBook(Long id) {
