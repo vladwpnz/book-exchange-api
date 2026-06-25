@@ -651,6 +651,6 @@ Docker Compose provides a repeatable MySQL environment while persisting data in 
 
 ## Author
 
-### Vlad Spiridonov
+### Vladyslav Spyrydonov
 
 GitHub: [@vladwpnz](https://github.com/vladwpnz)
